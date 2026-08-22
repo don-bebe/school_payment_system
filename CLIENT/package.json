@@ -1,0 +1,109 @@
+{
+  "name": "school-fees-app",
+  "private": true,
+  "version": "1.0.0",
+  "author": "Floby Munoz | Gobert Agency",
+  "description": "School Fees Management System",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "electron": "electron . --no-sandbox --disable-gpu",
+    "electron:dev": "concurrently --kill-others --names VITE,ELECTRON --prefix-colors cyan,yellow \"vite\" \"wait-on http://localhost:5173 && electron . --no-sandbox --disable-gpu\"",
+    "electron:build": "vite build && electron-builder",
+    "start": "npm run electron:dev"
+  },
+  "dependencies": {
+    "@fortawesome/free-brands-svg-icons": "^7.2.0",
+    "@fortawesome/free-regular-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.2.0",
+    "@reduxjs/toolkit": "^2.11.2",
+    "axios": "^1.13.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.7.0",
+    "redux": "^5.0.1",
+    "redux-persist": "^6.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.27",
+    "concurrently": "^9.2.1",
+    "electron": "^40.6.1",
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19",
+    "vite": "^7.3.1",
+    "wait-on": "^8.0.5"
+  },
+  "build": {
+    "appId": "com.schoolfees.app",
+    "productName": "School Fees",
+    "copyright": "Rock Out College",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "public/logo.png",
+        "to": "logo.png"
+      },
+      {
+        "from": "public/logo.ico",
+        "to": "logo.ico"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "public/logo.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "public/logo.ico",
+      "uninstallerIcon": "public/logo.ico",
+      "installerHeaderIcon": "public/logo.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "School Fees",
+      "perMachine": false
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "public/logo.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/logo.png"
+    }
+  }
+}

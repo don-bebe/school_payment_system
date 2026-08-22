@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <!-- Gold gradient for shield fill -->
+    <radialGradient id="shieldGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%"   stop-color="#fde68a"/>
+      <stop offset="60%"  stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </radialGradient>
+    <!-- Banner gradient -->
+    <linearGradient id="bannerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <!-- Arc path for text -->
+    <path id="nameArc" d="M 24,95 A 78,78 0 0,1 176,95"/>
+  </defs>
+
+  <!-- ── Shield outer (dark navy border) ── -->
+  <path d="M100 10
+           L178 35
+           L178 112
+           Q178 162 100 190
+           Q22  162 22  112
+           L22  35 Z"
+        fill="#1e3a8a"/>
+
+  <!-- ── Shield inner (gold) ── -->
+  <path d="M100 18
+           L170 41
+           L170 111
+           Q170 156 100 182
+           Q30  156 30  111
+           L30  41 Z"
+        fill="url(#shieldGrad)"/>
+
+  <!-- ── Shield inner border line ── -->
+  <path d="M100 24
+           L163 46
+           L163 110
+           Q163 152 100 176
+           Q37  152 37  110
+           L37  46 Z"
+        fill="none" stroke="#d97706" stroke-width="2"/>
+
+  <!-- ── Rocks (3 stacked boulders, simplified) ── -->
+  <!-- Bottom base rock -->
+  <ellipse cx="100" cy="148" rx="42" ry="13" fill="#78350f" opacity="0.7"/>
+  <!-- Large bottom rock -->
+  <path d="M60 142 Q63 118 80 122 Q90 116 100 120 Q110 116 120 122 Q137 118 140 142 Q132 154 100 157 Q68 154 60 142Z"
+        fill="#92400e"/>
+  <path d="M62 140 Q80 127 100 130 Q120 127 138 140" fill="none" stroke="#a16207" stroke-width="1.5"/>
+  <!-- Middle rock -->
+  <path d="M68 122 Q72 104 86 107 Q94 102 106 107 Q120 104 132 122 Q125 133 100 136 Q75 133 68 122Z"
+        fill="#a16207"/>
+  <path d="M71 120 Q85 110 100 112 Q115 110 129 120" fill="none" stroke="#b45309" stroke-width="1.2"/>
+  <!-- Top rock -->
+  <path d="M76 108 Q80 94 92 97 Q98 92 108 97 Q120 94 124 108 Q117 118 100 120 Q83 118 76 108Z"
+        fill="#b45309"/>
+  <!-- Highlight flicks on rocks -->
+  <path d="M82 96 Q90 91 96 94"  fill="none" stroke="#fde68a" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+  <path d="M74 120 Q82 114 90 117" fill="none" stroke="#fde68a" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+
+  <!-- ── Banner ribbon ── -->
+  <!-- Left tail -->
+  <path d="M18 158 L36 150 L36 170 L18 165 Z" fill="#1d4ed8"/>
+  <!-- Right tail -->
+  <path d="M182 158 L164 150 L164 170 L182 165 Z" fill="#1d4ed8"/>
+  <!-- Main ribbon body -->
+  <path d="M36 148 L164 148 L164 172 L36 172 Z" fill="url(#bannerGrad)"/>
+  <!-- Banner text -->
+  <text x="100" y="164" text-anchor="middle"
+        font-family="Arial,Helvetica,sans-serif" font-size="10.5"
+        font-weight="800" fill="#fde68a" letter-spacing="0.8">
+    PATIENCE · PERSEVERANCE · PROSPERITY
+  </text>
+
+  <!-- ── ROCK OUT COLLEGE arc text ── -->
+  <text font-family="Arial Black,Arial,Helvetica,sans-serif"
+        font-size="19" font-weight="900" fill="#1e3a8a" letter-spacing="2">
+    <textPath href="#nameArc" startOffset="50%" text-anchor="middle">
+      ROCK OUT COLLEGE
+    </textPath>
+  </text>
+
+  <!-- ── R  and  C flanking letters ── -->
+  <text x="32"  y="82" font-family="Arial Black,Arial,sans-serif"
+        font-size="22" font-weight="900" fill="#1e3a8a">R</text>
+  <text x="152" y="82" font-family="Arial Black,Arial,sans-serif"
+        font-size="22" font-weight="900" fill="#1e3a8a">C</text>
+
+  <!-- ── Red star (centre top of shield) ── -->
+  <polygon points="100,42  104,55  118,55  107,63  111,76  100,68  89,76  93,63  82,55  96,55"
+           fill="#dc2626"/>
+</svg>

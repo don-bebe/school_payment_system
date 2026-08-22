@@ -1,0 +1,13 @@
+# Client dependencies and build output
+CLIENT/node_modules/
+CLIENT/dist/
+CLIENT/dist-ssr/
+
+# Backend build and deployment output
+SchoolPaymentSystem/bin/
+SchoolPaymentSystem/obj/
+SchoolPaymentSystem/publish/
+SchoolPaymentSystem/Properties/
+
+# Backend local configuration
+SchoolPaymentSystem/appsettings.json
