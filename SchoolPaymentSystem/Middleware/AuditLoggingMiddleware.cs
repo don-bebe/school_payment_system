@@ -35,6 +35,15 @@ public class AuditLoggingMiddleware
             return;
         }
 
+        context.Request.EnableBuffering();
+
+        string? requestBody = null;
+        using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+        {
+            requestBody = await reader.ReadToEndAsync();
+            context.Request.Body.Position = 0;
+        }
+
         // Buffer the response so we can read the status code after the pipeline runs
         var originalBody = context.Response.Body;
         using var buffer = new MemoryStream();
@@ -42,6 +51,7 @@ public class AuditLoggingMiddleware
 
         bool    success      = true;
         string? errorMessage = null;
+        string? responseBody = null;
 
         try
         {
@@ -50,6 +60,11 @@ public class AuditLoggingMiddleware
             success = context.Response.StatusCode is >= 200 and < 400;
             if (!success)
                 errorMessage = $"HTTP {context.Response.StatusCode}";
+
+            buffer.Seek(0, SeekOrigin.Begin);
+            using var responseReader = new StreamReader(buffer, leaveOpen: true);
+            responseBody = await responseReader.ReadToEndAsync();
+            buffer.Seek(0, SeekOrigin.Begin);
         }
         catch (Exception ex)
         {
@@ -65,6 +80,20 @@ public class AuditLoggingMiddleware
             context.Response.Body = originalBody;
 
             var action = DeriveAction(context.Request.Method, context.Request.Path);
+            var requestMeta = new
+            {
+                context.Request.Method,
+                Path = context.Request.Path.Value,
+                Query = context.Request.QueryString.Value,
+                ContentType = context.Request.ContentType,
+                RequestBody = NormalizeAuditPayload(requestBody),
+            };
+            var responseMeta = new
+            {
+                StatusCode = context.Response.StatusCode,
+                ContentType = context.Response.ContentType,
+                ResponseBody = NormalizeAuditPayload(responseBody),
+            };
 
             try
             {
@@ -89,11 +118,13 @@ public class AuditLoggingMiddleware
 
                 var log = new AuditLog
                 {
-                    UserId       = userId,        // null for anonymous / login attempts
+                    UserId       = userId,
                     UserName     = userName,
                     Action       = action,
                     EntityName   = "HttpRequest",
                     EntityId     = context.Request.Path,
+                    OldValues    = ToJsonString(requestMeta),
+                    NewValues    = ToJsonString(responseMeta),
                     IpAddress    = currentUser.IpAddress,
                     Success      = success,
                     ErrorMessage = errorMessage,
@@ -105,9 +136,37 @@ public class AuditLoggingMiddleware
             }
             catch (Exception auditEx)
             {
-                // Never let audit failure break the main request
                 _logger.LogError(auditEx, "Failed to write audit log for {Action}", action);
             }
+        }
+    }
+
+    private static string? NormalizeAuditPayload(string? payload)
+    {
+        if (string.IsNullOrWhiteSpace(payload)) return null;
+
+        var trimmed = payload.Trim();
+        if (trimmed.Length > 8000)
+            trimmed = trimmed.Substring(0, 8000) + "... [truncated]";
+
+        return trimmed;
+    }
+
+    private static string? ToJsonString(object? value)
+    {
+        if (value is null) return null;
+
+        try
+        {
+            return System.Text.Json.JsonSerializer.Serialize(value, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+        }
+        catch
+        {
+            return value.ToString();
         }
     }
 

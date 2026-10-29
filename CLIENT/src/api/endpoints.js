@@ -133,13 +133,14 @@ export const REPORTS = {
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 export const ADMIN = {
-  AUDIT_LOGS:      '/admin/audit-logs',
-  SETTINGS:        '/admin/settings',
-  SETTING:         (key) => `/admin/settings/${key}`,
-  PAYMENT_METHODS: '/admin/payment-methods',
-  PAYMENT_METHOD:  (id) => `/admin/payment-methods/${id}`,
-  ZIG_RATE:        '/admin/zig-rate',
-  ZIG_RATE_HISTORY:'/admin/zig-rate/history',
+  AUDIT_LOGS:          '/admin/audit-logs',
+  AUDIT_LOG_OPTIONS:   '/admin/audit-log-options',
+  SETTINGS:            '/admin/settings',
+  SETTING:             (key) => `/admin/settings/${key}`,
+  PAYMENT_METHODS:     '/admin/payment-methods',
+  PAYMENT_METHOD:      (id) => `/admin/payment-methods/${id}`,
+  ZIG_RATE:            '/admin/zig-rate',
+  ZIG_RATE_HISTORY:    '/admin/zig-rate/history',
 };
 
 // ─── Notifications ────────────────────────────────────────────────────────────

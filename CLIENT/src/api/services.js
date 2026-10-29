@@ -156,16 +156,17 @@ export const reportsApi = {
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 export const adminApi = {
-  getAuditLogs:       (params) => api.get(ADMIN.AUDIT_LOGS, { params }),
-  getSettings:        ()       => api.get(ADMIN.SETTINGS),
-  getSetting:         (key)    => api.get(ADMIN.SETTING(key)),
-  upsertSetting:      (data)   => api.put(ADMIN.SETTINGS, data),
-  getPaymentMethods:  ()       => api.get(ADMIN.PAYMENT_METHODS),
-  createPaymentMethod:(data)   => api.post(ADMIN.PAYMENT_METHODS, data),
-  updatePaymentMethod:(id, d)  => api.put(ADMIN.PAYMENT_METHOD(id), d),
-  getZigRate:         ()       => api.get(ADMIN.ZIG_RATE),
-  getZigRateHistory:  ()       => api.get(ADMIN.ZIG_RATE_HISTORY),
-  setZigRate:         (data)   => api.post(ADMIN.ZIG_RATE, data),
+  getAuditLogs:         (params) => api.get(ADMIN.AUDIT_LOGS, { params }),
+  getAuditLogOptions:   ()       => api.get(ADMIN.AUDIT_LOG_OPTIONS),
+  getSettings:          ()       => api.get(ADMIN.SETTINGS),
+  getSetting:           (key)    => api.get(ADMIN.SETTING(key)),
+  upsertSetting:        (data)   => api.put(ADMIN.SETTINGS, data),
+  getPaymentMethods:    ()       => api.get(ADMIN.PAYMENT_METHODS),
+  createPaymentMethod:  (data)   => api.post(ADMIN.PAYMENT_METHODS, data),
+  updatePaymentMethod:  (id, d)  => api.put(ADMIN.PAYMENT_METHOD(id), d),
+  getZigRate:           ()       => api.get(ADMIN.ZIG_RATE),
+  getZigRateHistory:    ()       => api.get(ADMIN.ZIG_RATE_HISTORY),
+  setZigRate:           (data)   => api.post(ADMIN.ZIG_RATE, data),
 };
 
 // ─── Notifications ────────────────────────────────────────────────────────────

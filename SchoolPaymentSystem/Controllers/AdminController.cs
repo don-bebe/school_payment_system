@@ -50,6 +50,34 @@ public class AdminController : BaseController
         return Ok(result);
     }
 
+    // ── GET /api/admin/audit-log-options ─────────────────────────────────────
+    /// <summary>
+    /// Returns the distinct action and entity names currently stored in the audit log,
+    /// so UI filters can be populated from the database.
+    /// </summary>
+    [HttpGet("audit-log-options")]
+    [ProducesResponseType(typeof(AuditLogFilterOptionsDto), 200)]
+    public async Task<IActionResult> GetAuditLogFilterOptions()
+    {
+        var actions = await _db.AuditLog
+            .AsNoTracking()
+            .Where(a => !string.IsNullOrWhiteSpace(a.Action))
+            .Select(a => a.Action)
+            .Distinct()
+            .OrderBy(a => a)
+            .ToListAsync();
+
+        var entities = await _db.AuditLog
+            .AsNoTracking()
+            .Where(a => !string.IsNullOrWhiteSpace(a.EntityName))
+            .Select(a => a.EntityName)
+            .Distinct()
+            .OrderBy(a => a)
+            .ToListAsync();
+
+        return Ok(new AuditLogFilterOptionsDto(actions, entities));
+    }
+
     // ══════════════════════════════════════════════════════════════════════════
     // SYSTEM SETTINGS
     // ══════════════════════════════════════════════════════════════════════════

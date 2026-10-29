@@ -24,6 +24,27 @@ import { formatDateTime } from '../../utils/formatters';
 const TABS = ['Staff Accounts', 'Payment Methods', 'ZiG Rate', 'System Settings', 'Audit Logs'];
 const EMPTY_REG    = { firstName: '', lastName: '', email: '', password: '', role: '' };
 const EMPTY_METHOD = { name: '', code: '', requiresReference: false };
+const EMPTY_AUDIT_FILTERS = { action: '', entityName: '', from: '', to: '' };
+
+const formatAuditJson = (value) => {
+  if (value === null || value === undefined || value === '') return '—';
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return '—';
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      return trimmed;
+    }
+  }
+
+  if (typeof value === 'object') return JSON.stringify(value, null, 2);
+
+  return String(value);
+};
 
 // ─── ZiG Rate panel ───────────────────────────────────────────────────────────
 function ZigRatePanel() {
@@ -500,16 +521,39 @@ export default function AdminPage() {
   const users    = useAppSelector(selectStaffUsers);
 
   const { execute: getAuditLogs, data: auditData, loading: auditLoading } = useApi(adminApi.getAuditLogs);
+  const { execute: getAuditLogOptions, data: auditOptionsData } = useApi(adminApi.getAuditLogOptions);
 
   const [tab,     setTab]     = useState(0);
   const [showReg, setShowReg] = useState(false);
   const [regForm, setRegForm] = useState(EMPTY_REG);
   const [regErr,  setRegErr]  = useState({});
   const [saving,  setSaving]  = useState(false);
-  const [auditQ,  setAuditQ]  = useState({ page: 1, pageSize: 30 });
+  const [auditFilters, setAuditFilters] = useState(EMPTY_AUDIT_FILTERS);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditPageSize, setAuditPageSize] = useState(20);
+  const [selectedAudit, setSelectedAudit] = useState(null);
 
   useEffect(() => { dispatch(fetchUsers()); }, [dispatch]);
-  useEffect(() => { if (tab === 4) getAuditLogs(auditQ); }, [tab, auditQ]);
+
+  useEffect(() => {
+    if (tab === 4) getAuditLogOptions();
+  }, [tab, getAuditLogOptions]);
+
+  useEffect(() => {
+    if (tab !== 4) return;
+
+    const query = {
+      page: auditPage,
+      pageSize: auditPageSize,
+    };
+
+    if (auditFilters.action.trim()) query.action = auditFilters.action.trim();
+    if (auditFilters.entityName.trim()) query.entityName = auditFilters.entityName.trim();
+    if (auditFilters.from) query.from = new Date(`${auditFilters.from}T00:00:00`).toISOString();
+    if (auditFilters.to) query.to = new Date(`${auditFilters.to}T23:59:59`).toISOString();
+
+    getAuditLogs(query);
+  }, [tab, auditPage, auditPageSize, auditFilters, getAuditLogs]);
 
   const setReg = k => e => setRegForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -556,6 +600,19 @@ export default function AdminPage() {
     { key: 'success',    label: 'Result', align: 'center',
       render: r => <Badge variant={r.success !== false ? 'green' : 'red'}>{r.success !== false ? 'OK' : 'Failed'}</Badge> },
   ];
+
+  const handleAuditFilterChange = (key, value) => {
+    setAuditPage(1);
+    setAuditFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const clearAuditFilters = () => {
+    setAuditPage(1);
+    setAuditFilters(EMPTY_AUDIT_FILTERS);
+  };
+
+  const auditActionOptions = (auditOptionsData?.actions ?? []).map((value) => ({ value, label: value }));
+  const auditEntityOptions = (auditOptionsData?.entities ?? []).map((value) => ({ value, label: value }));
 
   return (
     <div className="space-y-5">
@@ -605,29 +662,166 @@ export default function AdminPage() {
       {tab === 4 && (
         <Card>
           <CardHeader title="Audit Logs" subtitle="All system actions recorded with full details" />
+
+          <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 items-end">
+              <FormField label="Action">
+                <Select
+                  value={auditFilters.action}
+                  onChange={(e) => handleAuditFilterChange('action', e.target.value)}
+                  placeholder="All actions"
+                  options={[{ value: '', label: 'All actions' }, ...auditActionOptions]}
+                />
+              </FormField>
+
+              <FormField label="Entity">
+                <Select
+                  value={auditFilters.entityName}
+                  onChange={(e) => handleAuditFilterChange('entityName', e.target.value)}
+                  placeholder="All entities"
+                  options={[{ value: '', label: 'All entities' }, ...auditEntityOptions]}
+                />
+              </FormField>
+
+              <FormField label="From">
+                <Input
+                  type="date"
+                  value={auditFilters.from}
+                  onChange={(e) => handleAuditFilterChange('from', e.target.value)}
+                />
+              </FormField>
+
+              <FormField label="To">
+                <Input
+                  type="date"
+                  value={auditFilters.to}
+                  onChange={(e) => handleAuditFilterChange('to', e.target.value)}
+                />
+              </FormField>
+
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" onClick={clearAuditFilters} className="w-full">
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <Table
             columns={AUDIT_COLS}
             data={auditData?.items ?? []}
             loading={auditLoading}
             emptyMessage="No audit log entries."
+            onRowClick={(row) => setSelectedAudit(row)}
           />
-          {(auditData?.totalCount ?? 0) > auditQ.pageSize && (
-            <div className="flex justify-between items-center mt-4 text-sm text-slate-500">
-              <span>Showing {auditQ.pageSize} of {auditData.totalCount}</span>
-              <div className="flex gap-2">
-                <Button size="xs" variant="secondary"
-                  disabled={auditQ.page <= 1}
-                  onClick={() => setAuditQ(q => ({ ...q, page: q.page - 1 }))}>Prev</Button>
-                <Button size="xs" variant="secondary"
-                  disabled={auditQ.page * auditQ.pageSize >= auditData.totalCount}
-                  onClick={() => setAuditQ(q => ({ ...q, page: q.page + 1 }))}>Next</Button>
-              </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-between items-center mt-4 text-sm text-slate-500">
+            <span>
+              Showing {auditData?.items?.length ?? 0} of {auditData?.totalCount ?? 0} records
+            </span>
+
+            <div className="flex items-center gap-3 flex-wrap justify-end">
+              <label className="flex items-center gap-2">
+                <span>Rows</span>
+                <Select
+                  value={auditPageSize}
+                  onChange={(e) => {
+                    setAuditPage(1);
+                    setAuditPageSize(Number(e.target.value));
+                  }}
+                  placeholder=""
+                  className="w-20"
+                  options={[{ value: 10, label: '10' }, { value: 20, label: '20' }, { value: 30, label: '30' }, { value: 50, label: '50' }]}
+                />
+              </label>
+
+              <Button size="xs" variant="secondary" disabled={auditPage <= 1} onClick={() => setAuditPage((p) => Math.max(1, p - 1))}>
+                Prev
+              </Button>
+              <span className="text-xs font-medium text-slate-600">
+                Page {auditData?.page ?? auditPage} / {auditData?.totalPages ?? 1}
+              </span>
+              <Button
+                size="xs"
+                variant="secondary"
+                disabled={(auditData?.page ?? auditPage) >= (auditData?.totalPages ?? 1)}
+                onClick={() => setAuditPage((p) => p + 1)}
+              >
+                Next
+              </Button>
             </div>
-          )}
+          </div>
         </Card>
       )}
 
       {/* ── Register Staff Modal ────────────────────────────────────────────── */}
+      <Modal
+        isOpen={!!selectedAudit}
+        onClose={() => setSelectedAudit(null)}
+        title="Audit Log Details"
+        size="xl"
+      >
+        {selectedAudit && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">User</p>
+                <p className="font-medium text-slate-800">{selectedAudit.userName || 'System'}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Time</p>
+                <p className="font-medium text-slate-800">{formatDateTime(selectedAudit.timestamp)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Action</p>
+                <code className="text-xs bg-white border border-slate-200 px-2 py-1 rounded text-slate-700">{selectedAudit.action}</code>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Result</p>
+                <Badge variant={selectedAudit.success !== false ? 'green' : 'red'}>
+                  {selectedAudit.success !== false ? 'Succeeded' : 'Failed'}
+                </Badge>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Entity</p>
+                <p className="font-medium text-slate-800">{selectedAudit.entityName || '—'}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Entity ID</p>
+                <p className="font-medium text-slate-800">{selectedAudit.entityId || '—'}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">IP Address</p>
+                <p className="font-medium text-slate-800">{selectedAudit.ipAddress || '—'}</p>
+              </div>
+            </div>
+
+            {selectedAudit.errorMessage && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-red-600 mb-1">Error</p>
+                <p className="text-sm text-red-700">{selectedAudit.errorMessage}</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">Old Values</p>
+                <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-50 p-3 text-xs text-slate-700 font-mono">
+                  {formatAuditJson(selectedAudit.oldValues)}
+                </pre>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">New Values</p>
+                <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-50 p-3 text-xs text-slate-700 font-mono">
+                  {formatAuditJson(selectedAudit.newValues)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       <Modal
         isOpen={showReg}
         onClose={() => { setShowReg(false); setRegForm(EMPTY_REG); setRegErr({}); }}
