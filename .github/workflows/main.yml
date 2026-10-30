@@ -20,7 +20,7 @@ jobs:
         working-directory: CLIENT
 
     steps:
-      - name: Checkout repository
+      - name: Checkout CLIENT only
         uses: actions/checkout@v4
 
       - name: Setup Node.js
