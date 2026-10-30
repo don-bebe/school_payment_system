@@ -17,7 +17,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: client
+        working-directory: CLIENT
 
     steps:
       - name: Checkout repository
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: CLIENT/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -40,6 +40,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: School-Fees-Windows-Installer
-          path: client/release/*.exe
+          path: CLIENT/release/*.exe
           if-no-files-found: error
           retention-days: 14
