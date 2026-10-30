@@ -12,15 +12,38 @@ permissions:
   contents: read
 
 jobs:
+  prepare-client:
+    name: Extract CLIENT folder
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Package CLIENT only
+        run: tar -czf client-source.tar.gz CLIENT
+
+      - name: Upload CLIENT source
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-source
+          path: client-source.tar.gz
+          retention-days: 1
+
   build-windows:
+    name: Build Windows Installer
+    needs: prepare-client
     runs-on: windows-latest
 
     steps:
-      - name: Checkout CLIENT only
-        uses: actions/checkout@v4
+      - name: Download CLIENT source
+        uses: actions/download-artifact@v4
         with:
-          sparse-checkout: CLIENT
-          sparse-checkout-cone-mode: true
+          name: client-source
+          path: .
+
+      - name: Extract CLIENT
+        run: tar -xzf client-source.tar.gz
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
