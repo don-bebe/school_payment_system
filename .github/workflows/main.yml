@@ -15,13 +15,12 @@ jobs:
   build-windows:
     runs-on: windows-latest
 
-    defaults:
-      run:
-        working-directory: CLIENT
-
     steps:
       - name: Checkout CLIENT only
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: CLIENT
+          sparse-checkout-cone-mode: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,9 +30,11 @@ jobs:
           cache-dependency-path: CLIENT/package-lock.json
 
       - name: Install dependencies
+        working-directory: CLIENT
         run: npm ci
 
       - name: Build Windows application
+        working-directory: CLIENT
         run: npm run electron:build -- --win --x64
 
       - name: Upload Windows installer
